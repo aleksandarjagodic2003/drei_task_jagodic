@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Data</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .bottom-left {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            margin: 20px;
+        }
+        .left-side {
+            position: fixed;
+            top: 0;
+            left: 0;
+            margin: 20px;
+        }
+        .right-side {
+            margin-left: 250px; 
+        }
+        .table-container {
+            margin-left: auto;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="left-side">
+        <div class="col-md-3">
+            <h2 class="mt-4">Form by Aleksandar Jagodic</h2>
+            <div>
+                <br>
+            </div>
+            <div class="btn-container">
+                <button class="btn btn-primary mb-2" id="showDataBtn">Show Data</button>
+                <button class="btn btn-primary mb-2" id="sortAscBtn">Sort -></button>
+                <button class="btn btn-primary mb-2" id="sortDescBtn">Sort <-</button>
+                <button class="btn btn-primary mb-2" onclick="filterData()">Filter by</button>
+                <input type="text" id="letterInput" class="mb-2" placeholder="Enter a letter">
+            </div>
+        </div>
+    </div>
+    <div class="right-side">
+        <div class="row">
+            <div class="col-md-11 table-container">
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped" id="dataTable" style="display:none;">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Index</th>
+                                <th>Customer Id</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Company</th>
+                                <th>City</th>
+                                <th>Country</th>
+                                <th>Phone 1</th>
+                                <th>Phone 2</th>
+                                <th>Email</th>
+                                <th>Subscription Date</th>
+                                <th>Website</th>
+                                <th>SALES 2021</th>
+                                <th>SALES 2022</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data will be displayed here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-left">
+        <input type="number" id="rowInput" class="form-control" placeholder="Number of Rows" min="1">
+    </div>
+</div>
+
+<!-- Bootstrap JS and your custom script -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    document.getElementById("showDataBtn").addEventListener("click", function() {
+        fetchAndDisplayData();
+    });
+
+    document.getElementById("sortAscBtn").addEventListener("click", function() {
+        sortData(true);
+    });
+
+    document.getElementById("sortDescBtn").addEventListener("click", function() {
+        sortData(false);
+    });
+
+    document.getElementById("addDataBtn").addEventListener("click", function() {
+        // Implement addData functionality here
+        console.log("Add Data button clicked");
+    });
+
+    function filterData() {
+        var rows = document.getElementById("dataTable").rows;
+        var letter = document.getElementById("letterInput").value;
+        for (var i = 1; i < rows.length; i++) {
+            var firstNameCell = rows[i].cells[2];
+            if (firstNameCell.textContent.trim().toUpperCase().startsWith(letter) || firstNameCell.textContent.trim().toLowerCase().startsWith(letter)) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+    function fetchAndDisplayData() {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    var responseData = JSON.parse(xhr.responseText);
+                    displayData(responseData);
+                } else {
+                    console.error("Error fetching data:", xhr.status, xhr.statusText);
+                }
+            }
+        };
+        xhr.open("GET", "data.json", true);
+        xhr.send();
+    }
+
+    function displayData(data) {
+        var tableBody = document.getElementById("tableBody");
+        tableBody.innerHTML = "";
+        var maxRow = parseInt(document.getElementById("rowInput").value) + 1;
+        var limitedData = data.slice(1, maxRow);
+
+        limitedData.forEach(function(item) {
+            var row = document.createElement("tr");
+            row.innerHTML = "<td>" + item["Index"] + "</td>" +
+                            "<td>" + item["Customer Id"] + "</td>" +
+                            "<td>" + item["First Name"] + "</td>" +
+                            "<td>" + item["Last Name"] + "</td>" +
+                            "<td>" + item["Company"] + "</td>" +
+                            "<td>" + item["City"] + "</td>" +
+                            "<td>" + item["Country"] + "</td>" +
+                            "<td>" + item["Phone 1"] + "</td>" +
+                            "<td>" + item["Phone 2"] + "</td>" +
+                            "<td>" + item["Email"] + "</td>" +
+                            "<td>" + item["Subscription Date"] + "</td>" +
+                            "<td>" + item["Website"] + "</td>" +
+                            "<td>" + item["SALES 2021"] + "</td>" +
+                            "<td>" + item["SALES 2022"] + "</td>";
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById("dataTable").style.display = "table"; // Show the table
+    }
+
+    function sortData(ascending) {
+        var table, rows, switching, i, x, y, shouldSwitch;
+        table = document.getElementById("dataTable");
+        switching = true;
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("td")[2]; // Get the <td> containing the First Name
+                y = rows[i + 1].getElementsByTagName("td")[2];
+                var xValue = x.innerHTML.toLowerCase();
+                var yValue = y.innerHTML.toLowerCase();
+                if (ascending ? (xValue > yValue) : (xValue < yValue)) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+            }
+        }
+}
+</script>
+</body>
+</html>
+
+
+
